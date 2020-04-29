@@ -73,19 +73,19 @@ def decision_tree():
     return evaluate("Decision Tree", y_pred)
 
 
-def GaussianMixture_model():
-    from sklearn.mixture import GaussianMixture
-    gmm = GaussianMixture(n_components=1)
-    gmm.fit(X_train[y_train == 0])
-
-    OKscore = gmm.score_samples(X_train[y_train == 0])
-    threshold = OKscore.mean() - 1 * OKscore.std()
-
-    score = gmm.score_samples(X_test)
-
-    # majority_correct = len(score[(y_test == 1) & (score > thred)])
-    y_pred = np.where(score < threshold, 1, 0)
-    return evaluate("GaussianMixture_model", y_pred)
+# def GaussianMixture_model():
+#     from sklearn.mixture import GaussianMixture
+#     gmm = GaussianMixture(n_components=1)
+#     gmm.fit(X_train[y_train == 0])
+#
+#     OKscore = gmm.score_samples(X_train[y_train == 0])
+#     threshold = OKscore.mean() - 1 * OKscore.std()
+#
+#     score = gmm.score_samples(X_test)
+#
+#     # majority_correct = len(score[(y_test == 1) & (score > thred)])
+#     y_pred = np.where(score < threshold, 1, 0)
+#     return evaluate("GaussianMixture_model", y_pred)
 
 def getTest(filename):
     df = pd.read_csv(filename)
