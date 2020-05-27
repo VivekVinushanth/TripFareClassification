@@ -1,7 +1,7 @@
 """Class to compare performance with different classifiers"""
 import sys
 
-from classifiers.eg_smote import EGSmote
+# from classifiers.eg_smote import EGSmote
 from classifiers.gsomClassifier import GSOMClassifier
 from classifiers.oldGSmote import OldGeometricSMOTE
 
@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 from imblearn.over_sampling import SMOTE
 from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.ensemble import GradientBoostingClassifier, VotingClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.tree import DecisionTreeRegressor
@@ -29,14 +29,16 @@ def evaluate(classifier, index, y_predict):
     label = ["tripid", "prediction"]
     frame = pd.DataFrame(data, columns=label)
     # export_csv = frame.to_csv(r'output/eva_lj.csv', header=True)
-    file_path = "../output/xg-plain-out2.csv"
+    file_path = "../output/xg-new-dis-runtime-fare_no_scale.csv"
     with open(file_path, mode='w', newline='\n') as f:
         frame.to_csv(f, float_format='%.2f', index=False, header=True)
 
 
 def XGBoost():
     # Fitting X-Gradient boosting
-    gbc = xgb.XGBClassifier(objective="binary:logistic", random_state=42)
+    gbc = xgb.XGBClassifier(objective="binary:logistic", seed=27, learning_rate= 0.01, n_estimators=5000,
+                            max_depth=4, min_child_weight=6, gamma=0, subsample=0.8, colsample_bylevel=0.8,
+                            reg_alpha=0.0005, scale_pos_weight=1,thread=4)
 
     # parameters = {
     #     'scale_pos_weight': [0.1, 0.5, 0.9, 1.0], 'max_depth': range(3, 10, 2), 'min_child_weight': range(1, 6, 2),
@@ -48,7 +50,7 @@ def XGBoost():
         'n_estimators': [100, 200, 300, 400, 500]
     }
 
-    gbc = GridSearchCV(gbc, parameters, cv=5)
+    # gbc = GridSearchCV(gbc, parameters, cv=5)
     # fit model to training data
     gbc.fit(X_train, y_train)
 
@@ -61,6 +63,27 @@ def XGBoost():
 
     evaluate("XGBoost", index, y_predict)
 
+def xgboost_ensemble():
+
+    gbc1 = xgb.XGBClassifier(objective="binary:logistic", seed=27, learning_rate= 0.01, n_estimators=500,
+                            max_depth=4, min_child_weight=6, gamma=0, subsample=0.8, colsample_bylevel=0.8,
+                            reg_alpha=0.0005, scale_pos_weight=1,thread=4)
+
+    gbc2 = xgb.XGBClassifier(objective="binary:logistic", seed=27, learning_rate= 0.01, n_estimators=5000,
+                            max_depth=4, min_child_weight=6, gamma=0, subsample=0.8, colsample_bylevel=0.8,
+                            reg_alpha=0.0005, scale_pos_weight=1,thread=4)
+
+    gbc3 = xgb.XGBClassifier(objective="binary:logistic", seed=27, learning_rate= 0.01, n_estimators=5000,
+                            max_depth=4, min_child_weight=6, gamma=0, subsample=0.8, colsample_bylevel=0.8,
+                            reg_alpha=0.0005, scale_pos_weight=1,thread=4)
+
+    ens = VotingClassifier(estimators=[('xg1', gbc1), ('xg2', gbc2), ('xg3', gbc3)],voting='hard')
+
+    ens.fit(X_train,y_train)
+
+    y_pred = ens.predict(X_test)
+    evaluate("ens", index, y_pred)
+
 
 def GSOM_Classifier():
     gsom = GSOMClassifier()
@@ -70,8 +93,8 @@ def GSOM_Classifier():
 
 
 # data transformation if necessary.
-X_t, y_t = processOneHotTrain("../Data/train.csv")
-X_test, index = processOneHotTest("../Data/test.csv")
+X_t, y_t = processOneHotTrain("../Data/modified_train.csv")
+X_test, index = processOneHotTest("../Data/modified_test.csv")
 
 # For SMOTE because of data imbalance
 # sm = SMOTE(sampling_strategy='auto', k_neighbors=3, random_state=42)
@@ -82,4 +105,4 @@ X_train, y_train = X_t, y_t
 
 # Trying various classifiers
 XGBoost()
-# GSOM_Classifier()
+# GSOM_Classifiersifier()
