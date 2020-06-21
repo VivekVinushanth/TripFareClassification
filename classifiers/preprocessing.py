@@ -135,8 +135,8 @@ def preProcess_DTDi(filename):
     # df.fillna(df.mean(), inplace=True)
     df.dropna()
 
-    # df['time'] = df.apply(lambda row: find_time(row.pickup_time), axis=1)
-    # df['day'] = df.apply(lambda row: find_day(row.pickup_time), axis=1)
+    df['time'] = df.apply(lambda row: find_time(row.pickup_time), axis=1)
+    df['day'] = df.apply(lambda row: find_day(row.pickup_time), axis=1)
     df['distance'] = df.apply(lambda row: find_distance(row.drop_lon, row.drop_lat, row.pick_lon, row.pick_lat), axis=1)
 
     df.to_csv("temp_test.csv")
@@ -153,33 +153,40 @@ def processOneHotTrain(filename):
 
     # df.fillna(df.mean(), inplace=True)
 
+    df.drop(['tripid'], axis=1, inplace=True)
+    df.dropna(axis=0, how='any', inplace=True)
+
     X = df.iloc[:, 1:-1].values
     y = np.asarray(df.iloc[:, -1].values)
 
-    df.drop(['tripid'], axis=1, inplace=True)
-    df.dropna(axis=0, how='any', inplace=True)
+
     # df.drop(['time'], axis=1, inplace=True)
     # df.drop(['day'], axis=1, inplace=True)
 
-    print(df.columns)
+    print(df.head(10))
+    print(X[:10])
 
     # encode for time
-    # columnTransformer = ColumnTransformer([('encoder', OneHotEncoder(drop='first'), [5])], remainder='passthrough')
-    # X = np.array(columnTransformer.fit_transform(X), dtype=np.str)
+    columnTransformer = ColumnTransformer([('encoder', OneHotEncoder(drop='first'), [5])], remainder='passthrough')
+    X = np.array(columnTransformer.fit_transform(X), dtype=np.str)
 
-    # scaler = MinMaxScaler()
-    # X = scaler.fit_transform(X)
+    scaler = MinMaxScaler()
+    X = scaler.fit_transform(X)
 
     return X, y
 
 
 def processOneHotTest(filename):
     df2 = pd.read_csv(filename)
-    X1 = df2.iloc[:, 1:].values
+
+
+    df2.dropna(axis=0, how='any', inplace=True)
+
     index = np.asarray(df2.iloc[:, 0].values)
 
     df2.drop(['tripid'], axis=1, inplace=True)
-    df2.dropna(axis=0, how='any', inplace=True)
+    X1 = df2.iloc[:, 1:].values
+
 
     # df2.drop(['time'], axis=1, inplace=True)
     # df2.drop(['day'], axis=1, inplace=True)

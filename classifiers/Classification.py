@@ -29,7 +29,7 @@ def evaluate(classifier, index, y_predict):
     label = ["tripid", "prediction"]
     frame = pd.DataFrame(data, columns=label)
     # export_csv = frame.to_csv(r'output/eva_lj.csv', header=True)
-    file_path = "../output/xg-new-dis-runtime-fare_no_scale.csv"
+    file_path = "../output/xg-nan2-dis-runtime-fare_no_scale_diff_order.csv"
     with open(file_path, mode='w', newline='\n') as f:
         frame.to_csv(f, float_format='%.2f', index=False, header=True)
 
@@ -38,7 +38,7 @@ def XGBoost():
     # Fitting X-Gradient boosting
     gbc = xgb.XGBClassifier(objective="binary:logistic", seed=27, learning_rate= 0.01, n_estimators=5000,
                             max_depth=4, min_child_weight=6, gamma=0, subsample=0.8, colsample_bylevel=0.8,
-                            reg_alpha=0.0005, scale_pos_weight=1,thread=4)
+                            reg_alpha=0.0005, scale_pos_weight=1,thread=4,early_stopping_rounds=10)
 
     # parameters = {
     #     'scale_pos_weight': [0.1, 0.5, 0.9, 1.0], 'max_depth': range(3, 10, 2), 'min_child_weight': range(1, 6, 2),
@@ -105,4 +105,5 @@ X_train, y_train = X_t, y_t
 
 # Trying various classifiers
 XGBoost()
+# xgboost_ensemble()
 # GSOM_Classifiersifier()
